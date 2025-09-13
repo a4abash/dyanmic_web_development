@@ -1,5 +1,6 @@
 <?php
 session_start();
+define('ABSPATH', __DIR__);
 include 'config/toastr.php';
 include 'config/db.php';
 
@@ -30,7 +31,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $error = "Invalid password!";
         }
     } else {
-        $error = "usrname doesnot exists!";
+        $error = "Something went wrong!";
     }
 }
 ?>
@@ -42,7 +43,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Ripper Teach & Solutions - Web & App Development, cloud Solutions, and Security Services.">
-    <title>register</title>
+    <link rel="icon" type="image/png" href="assets/images/logo-2.png">
+    <title>Login</title>
     <link rel="stylesheet" href="assets/css/style.css" />
     <link href="assets/css/css2.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -66,9 +68,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
     <script src="assets/js/jquery.min.js"></script>
-<script src="assets/js/toastr.min.js"></script>
-<script src="assets/js/script.js" defer></script>
-<?php include 'config/toastr.php'; ?>
+    <script src="assets/js/toastr.min.js"></script>
+    <script src="assets/js/script.js" defer></script>
+    <?php include 'config/toastr.php'; ?>
 </body>
 
 </html>

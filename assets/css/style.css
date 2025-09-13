@@ -447,3 +447,11 @@ button[type="submit"]:hover {
       max-width: 400px;
       margin: 2rem auto;
     }
+
+    #role {
+      width: 100%;
+      padding: 0.70rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }

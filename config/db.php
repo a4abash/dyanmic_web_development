@@ -1,12 +1,11 @@
 <?php
-
 declare(strict_types=1);
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
-// if (!defined('ABSPATH')) {
-//     exit('Direct access not allowed');
-// }
+if (!defined('ABSPATH')) {
+    exit('Direct access not allowed');
+}
 
 $host =  "localhost";
 $user = "root";
@@ -24,5 +23,5 @@ try {
 } catch (mysqli_sql_exception $e) {
     error_log("Database connection failed: " . $e->getMessage());
 
-    exit("Service temporarily unavailable. Please try again later.");
+    exit("Database connection failed. Please try again later.");
 }
