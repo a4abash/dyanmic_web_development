@@ -1,6 +1,4 @@
 <?php
-require 'config/auth.php';
-
 include 'includes/header.php'; ?>
     <section class="media-gallery">
         <h1>Past Works</h1><br>

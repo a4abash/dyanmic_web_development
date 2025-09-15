@@ -1,4 +1,3 @@
-<!--admin dashboard with roles-->
 <?php
 include 'includes/header.php';
 include 'includes/sidebar.php';

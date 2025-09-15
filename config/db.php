@@ -37,7 +37,7 @@ class Database {
 $config = [
     'host' => 'localhost',
     'user' => 'root',
-    'pass' => 'password',
+    'pass' => '',
     'db' => 'abash',
     'port' => 3306,
     'timezone' => '+05:45'

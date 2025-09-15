@@ -1,5 +1,4 @@
 <?php
-require 'config/auth.php';
 
 include 'includes/header.php'; ?>
     <section class="about-section">
