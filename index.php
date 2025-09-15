@@ -3,6 +3,7 @@ require 'config/auth.php';
 include 'includes/header.php'; 
 
 ?>
+<title>Home - Ripper Tech & Solutions</title>
 
 <!-- Hero Section with Background Image -->
 <section class="hero-bg">

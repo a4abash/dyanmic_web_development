@@ -2,6 +2,7 @@
 require 'config/auth.php';
 
 include 'includes/header.php'; ?>
+<title>Services - Ripper Tech & Solutions</title>
 <section class="services-section">
     <h1>Our Services</h1>
     <p>List of services that we provide to the client:</p><br>

@@ -18,6 +18,7 @@ try {
 }
 
 ?>
+<title>Products - Ripper Tech & Solutions</title>
 <section class="services-section">
     <h1>Our Products</h1>
     <p>List of Products:</p><br>

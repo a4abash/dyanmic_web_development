@@ -2,6 +2,7 @@
 require 'config/auth.php';
 
 include 'includes/header.php'; ?>
+<title>Contact Us - Ripper Tech & Solutions</title>
         <section class="contact-section">
             <h1 style="text-align:center;">Contact Us</h1>
 

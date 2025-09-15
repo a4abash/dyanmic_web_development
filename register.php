@@ -56,7 +56,7 @@ $conn->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Ripper Teach & Solutions - Web & App Development, cloud Solutions, and Security Services.">
     <link rel="icon" type="image/png" href="assets/images/logo-2.png">
-    <title>Register</title>
+    <title>Sign Up - Ripper Tech & Solutions</title>
     <link rel="stylesheet" href="assets/css/style.css" />
     <link href="assets/css/css2.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />

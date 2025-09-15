@@ -26,11 +26,12 @@ if (isset($_GET['debug'])) {
 </head>
 <style>
     .admin-header .logo img {
-            height: 95px; /* bigger logo */
+            height: 95px;
             width: 130px;
         }
 
     .admin-header {
+        padding: fixed;
         padding: 60px;
     }
     

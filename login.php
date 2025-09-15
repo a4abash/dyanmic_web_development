@@ -91,7 +91,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="description" content="Ripper Teach & Solutions - Web & App Development, cloud Solutions, and Security Services.">
     <meta name="robots" content="noindex, nofollow">
     <link rel="icon" type="image/png" href="assets/images/logo-2.png">
-    <title>Login</title>
+    <title>Login - Ripper Tech & Solutions</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link href="assets/css/css2.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"

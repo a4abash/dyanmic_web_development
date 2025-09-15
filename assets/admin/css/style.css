@@ -503,10 +503,9 @@ body {
     color: white;
 }
 
-.role-manager {
-    background-color: #20c997;
-    color: white;
-}
+.role-member {
+     background-color: #3498db;
+     color: #fff; }  
 
 .user-info h6 {
     margin-bottom: 0.25rem;
