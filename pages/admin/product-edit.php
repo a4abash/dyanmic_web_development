@@ -313,36 +313,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
     <div class="content-body">
         <?php if ($success_msg): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle me-2"></i><?php echo htmlspecialchars($success_msg); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i><?php echo htmlspecialchars($success_msg); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
         <?php endif; ?>
 
         <?php if ($errorHandler->hasErrors()): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i>
-                <strong>Please fix the following errors:</strong>
-                <ul class="mb-0 mt-2">
-                    <?php foreach ($errorHandler->getAllErrors() as $error): ?>
-                        <li><?php echo htmlspecialchars($error); ?></li>
-                    <?php endforeach; ?>
-                </ul>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <strong>Please fix the following errors:</strong>
+            <ul class="mb-0 mt-2">
+                <?php foreach ($errorHandler->getAllErrors() as $error): ?>
+                <li><?php echo htmlspecialchars($error); ?></li>
+                <?php endforeach; ?>
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
         <?php endif; ?>
 
         <?php if (!empty($errorHandler->getWarnings())): ?>
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                <strong>Warnings:</strong>
-                <ul class="mb-0 mt-2">
-                    <?php foreach ($errorHandler->getWarnings() as $warning): ?>
-                        <li><?php echo htmlspecialchars($warning); ?></li>
-                    <?php endforeach; ?>
-                </ul>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Warnings:</strong>
+            <ul class="mb-0 mt-2">
+                <?php foreach ($errorHandler->getWarnings() as $warning): ?>
+                <li><?php echo htmlspecialchars($warning); ?></li>
+                <?php endforeach; ?>
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
         <?php endif; ?>
 
         <div class="row">
@@ -351,14 +351,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
                             <h2 class="mb-0">Edit Product: <?php echo htmlspecialchars($product['name']); ?></h2>
-                            <small class="text-muted">Product ID: #<?php echo $product_id; ?> | Last updated: <?php echo $product['updated_at'] ?? $product['created_at']; ?></small>
+                            <small class="text-muted">Product ID: #<?php echo $product_id; ?> | Last updated:
+                                <?php echo $product['updated_at'] ?? $product['created_at']; ?></small>
                         </div>
                         <div class="badge bg-<?php echo $product['stock'] > 0 ? 'success' : 'danger'; ?>">
                             <?php echo $product['stock'] > 0 ? 'In Stock' : 'Out of Stock'; ?>
                         </div>
                     </div>
                     <hr>
-                    
+
                     <form id="productForm" method="POST" enctype="multipart/form-data" novalidate>
                         <input type="hidden" name="action" value="update">
 
@@ -367,15 +368,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 <label for="name" class="form-label">
                                     Product Name <span class="required-field">*</span>
                                 </label>
-                                <input type="text" class="form-control <?php echo $errorHandler->getError('name') ? 'is-invalid' : ''; ?>" 
+                                <input type="text"
+                                    class="form-control <?php echo $errorHandler->getError('name') ? 'is-invalid' : ''; ?>"
                                     id="name" name="name"
                                     value="<?php echo htmlspecialchars($_POST['name'] ?? $product['name']); ?>"
                                     placeholder="Enter product name" required maxlength="150">
                                 <div class="form-text">Maximum 150 characters</div>
                                 <?php if ($errorHandler->getError('name')): ?>
-                                    <div class="invalid-feedback">
-                                        <?php echo htmlspecialchars($errorHandler->getError('name')); ?>
-                                    </div>
+                                <div class="invalid-feedback">
+                                    <?php echo htmlspecialchars($errorHandler->getError('name')); ?>
+                                </div>
                                 <?php endif; ?>
                             </div>
 
@@ -388,9 +390,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                     $selected_category = $_POST['category'] ?? $product['category'];
                                     foreach ($categories as $cat): 
                                     ?>
-                                        <option value="<?php echo $cat; ?>" <?php echo ($selected_category === $cat) ? 'selected' : ''; ?>>
-                                            <?php echo $cat; ?>
-                                        </option>
+                                    <option value="<?php echo $cat; ?>"
+                                        <?php echo ($selected_category === $cat) ? 'selected' : ''; ?>>
+                                        <?php echo $cat; ?>
+                                    </option>
                                     <?php endforeach; ?>
                                 </select>
                                 <div class="form-text">Optional - helps organize your products</div>
@@ -404,62 +407,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 </label>
                                 <div class="input-group">
                                     <span class="input-group-text">$</span>
-                                    <input type="number" class="form-control <?php echo $errorHandler->getError('price') ? 'is-invalid' : ''; ?>" 
+                                    <input type="number"
+                                        class="form-control <?php echo $errorHandler->getError('price') ? 'is-invalid' : ''; ?>"
                                         id="price" name="price"
                                         value="<?php echo htmlspecialchars($_POST['price'] ?? $product['price']); ?>"
                                         placeholder="0.00" step="0.01" min="0.01" max="99999999.99" required>
                                 </div>
                                 <div class="form-text">Enter the selling price in USD</div>
                                 <?php if ($errorHandler->getError('price')): ?>
-                                    <div class="invalid-feedback">
-                                        <?php echo htmlspecialchars($errorHandler->getError('price')); ?>
-                                    </div>
+                                <div class="invalid-feedback">
+                                    <?php echo htmlspecialchars($errorHandler->getError('price')); ?>
+                                </div>
                                 <?php endif; ?>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label for="stock" class="form-label">Stock Quantity</label>
-                                <input type="number" class="form-control <?php echo $errorHandler->getError('stock') ? 'is-invalid' : ''; ?>" 
+                                <input type="number"
+                                    class="form-control <?php echo $errorHandler->getError('stock') ? 'is-invalid' : ''; ?>"
                                     id="stock" name="stock"
                                     value="<?php echo htmlspecialchars($_POST['stock'] ?? $product['stock']); ?>"
                                     placeholder="0" min="0" max="999999">
                                 <div class="form-text">Number of units in inventory</div>
                                 <?php if ($errorHandler->getError('stock')): ?>
-                                    <div class="invalid-feedback">
-                                        <?php echo htmlspecialchars($errorHandler->getError('stock')); ?>
-                                    </div>
+                                <div class="invalid-feedback">
+                                    <?php echo htmlspecialchars($errorHandler->getError('stock')); ?>
+                                </div>
                                 <?php endif; ?>
                             </div>
                         </div>
 
                         <div class="mb-4">
                             <label for="description" class="form-label">Product Description</label>
-                            <textarea class="form-control <?php echo $errorHandler->getError('description') ? 'is-invalid' : ''; ?>" 
-                                id="description" name="description"
-                                rows="4" maxlength="2000"
+                            <textarea
+                                class="form-control <?php echo $errorHandler->getError('description') ? 'is-invalid' : ''; ?>"
+                                id="description" name="description" rows="4" maxlength="2000"
                                 placeholder="Describe your product..."><?php echo htmlspecialchars($_POST['description'] ?? $product['description']); ?></textarea>
-                            <div class="form-text">Optional - provide detailed information about the product (max 2000 characters)</div>
+                            <div class="form-text">Optional - provide detailed information about the product (max 2000
+                                characters)</div>
                             <?php if ($errorHandler->getError('description')): ?>
-                                <div class="invalid-feedback">
-                                    <?php echo htmlspecialchars($errorHandler->getError('description')); ?>
-                                </div>
+                            <div class="invalid-feedback">
+                                <?php echo htmlspecialchars($errorHandler->getError('description')); ?>
+                            </div>
                             <?php endif; ?>
                         </div>
 
                         <div class="mb-4">
                             <label class="form-label">Product Image</label>
-                            
+
                             <?php if (!empty($product['image'])): ?>
-                                <div class="current-image mb-3">
-                                    <label class="form-label text-muted">Current Image:</label>
-                                    <div class="position-relative d-inline-block">
-                                        <img src="../../uploads/<?php echo htmlspecialchars($product['image']); ?>" 
-                                             alt="Current product image" class="current-product-image">
-                                    </div>
+                            <div class="current-image mb-3">
+                                <label class="form-label text-muted">Current Image:</label>
+                                <div class="position-relative d-inline-block">
+                                    <img src="../../uploads/<?php echo htmlspecialchars($product['image']); ?>"
+                                        alt="Current product image" class="current-product-image">
                                 </div>
+                            </div>
                             <?php endif; ?>
-                            
-                            <div class="file-input-wrapper <?php echo $errorHandler->getError('image') ? 'is-invalid' : ''; ?>">
+
+                            <div
+                                class="file-input-wrapper <?php echo $errorHandler->getError('image') ? 'is-invalid' : ''; ?>">
                                 <input type="file" id="image" name="image" accept="image/*">
                                 <label for="image" class="file-input-label" id="imageLabel">
                                     <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
@@ -472,9 +479,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             <img id="imagePreview" class="image-preview" alt="Preview" style="display: none;">
                             <div class="form-text">Optional - upload a new image to replace the current one</div>
                             <?php if ($errorHandler->getError('image')): ?>
-                                <div class="invalid-feedback">
-                                    <?php echo htmlspecialchars($errorHandler->getError('image')); ?>
-                                </div>
+                            <div class="invalid-feedback">
+                                <?php echo htmlspecialchars($errorHandler->getError('image')); ?>
+                            </div>
                             <?php endif; ?>
                         </div>
 
@@ -561,7 +568,7 @@ function resetForm() {
         document.getElementById('stock').value = '<?php echo $product['stock']; ?>';
         document.getElementById('description').value = '<?php echo addslashes($product['description']); ?>';
         document.getElementById('category').value = '<?php echo $product['category']; ?>';
-        
+
         document.getElementById('image').value = '';
         document.getElementById('imagePreview').style.display = 'none';
         document.getElementById('imageLabel').innerHTML = `
@@ -571,7 +578,7 @@ function resetForm() {
             </div>
             <small class="text-muted">PNG, JPG, GIF, WebP up to 10MB</small>
         `;
-        
+
         document.querySelectorAll('.is-invalid').forEach(el => {
             el.classList.remove('is-invalid');
         });
@@ -617,16 +624,17 @@ document.getElementById('description').addEventListener('input', function() {
     const maxLength = 2000;
     const currentLength = this.value.length;
     const remaining = maxLength - currentLength;
-    
+
     let helpText = this.parentElement.querySelector('.form-text');
     if (remaining < 100) {
-        helpText.innerHTML = `Optional - provide detailed information about the product (${remaining} characters remaining)`;
+        helpText.innerHTML =
+            `Optional - provide detailed information about the product (${remaining} characters remaining)`;
         helpText.style.color = remaining < 20 ? '#dc3545' : '#ffc107';
     } else {
         helpText.innerHTML = 'Optional - provide detailed information about the product (max 2000 characters)';
         helpText.style.color = '';
     }
-    
+
     if (currentLength > maxLength) {
         this.setCustomValidity('Description cannot exceed 2000 characters');
     } else {
@@ -636,24 +644,24 @@ document.getElementById('description').addEventListener('input', function() {
 
 document.getElementById('productForm').addEventListener('submit', function(e) {
     let isValid = true;
-    
+
     const name = document.getElementById('name').value.trim();
     const price = parseFloat(document.getElementById('price').value);
-    
+
     if (!name) {
         document.getElementById('name').classList.add('is-invalid');
         isValid = false;
     } else {
         document.getElementById('name').classList.remove('is-invalid');
     }
-    
+
     if (isNaN(price) || price <= 0) {
         document.getElementById('price').classList.add('is-invalid');
         isValid = false;
     } else {
         document.getElementById('price').classList.remove('is-invalid');
     }
-    
+
     if (!isValid) {
         e.preventDefault();
         alert('Please fix the validation errors before submitting.');

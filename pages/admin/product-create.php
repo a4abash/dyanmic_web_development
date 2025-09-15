@@ -122,17 +122,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
     <div class="content-body">
         <?php if ($success_msg): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle me-2"></i><?php echo htmlspecialchars($success_msg); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i><?php echo htmlspecialchars($success_msg); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
         <?php endif; ?>
 
         <?php if ($error_msg): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i><?php echo htmlspecialchars($error_msg); ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i><?php echo htmlspecialchars($error_msg); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
         <?php endif; ?>
 
         <div class="row">
@@ -162,17 +162,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 <label for="category" class="form-label">Category</label>
                                 <select class="form-select" id="category" name="category">
                                     <option value="">Select Category</option>
-                                    <option value="Electronics" <?php echo (($_POST['category'] ?? '') === 'Electronics') ? 'selected' : ''; ?>>Electronics</option>
-                                    <option value="Clothing" <?php echo (($_POST['category'] ?? '') === 'Clothing') ? 'selected' : ''; ?>>Clothing</option>
-                                    <option value="Books" <?php echo (($_POST['category'] ?? '') === 'Books') ? 'selected' : ''; ?>>Books</option>
-                                    <option value="Home & Garden" <?php echo (($_POST['category'] ?? '') === 'Home & Garden') ? 'selected' : ''; ?>>Home & Garden</option>
-                                    <option value="Sports" <?php echo (($_POST['category'] ?? '') === 'Sports') ? 'selected' : ''; ?>>Sports</option>
-                                    <option value="Toys" <?php echo (($_POST['category'] ?? '') === 'Toys') ? 'selected' : ''; ?>>Toys</option>
-                                    <option value="Beauty" <?php echo (($_POST['category'] ?? '') === 'Beauty') ? 'selected' : ''; ?>>Beauty</option>
-                                    <option value="Food" <?php echo (($_POST['category'] ?? '') === 'Food') ? 'selected' : ''; ?>>Food</option>
-                                    <option value="Automotive" <?php echo (($_POST['category'] ?? '') === 'Automotive') ? 'selected' : ''; ?>>Automotive</option>
-                                    <option value="Health" <?php echo (($_POST['category'] ?? '') === 'Health') ? 'selected' : ''; ?>>Health</option>
-                                    <option value="Other" <?php echo (($_POST['category'] ?? '') === 'Other') ? 'selected' : ''; ?>>Other</option>
+                                    <option value="Electronics"
+                                        <?php echo (($_POST['category'] ?? '') === 'Electronics') ? 'selected' : ''; ?>>
+                                        Electronics</option>
+                                    <option value="Clothing"
+                                        <?php echo (($_POST['category'] ?? '') === 'Clothing') ? 'selected' : ''; ?>>
+                                        Clothing</option>
+                                    <option value="Books"
+                                        <?php echo (($_POST['category'] ?? '') === 'Books') ? 'selected' : ''; ?>>Books
+                                    </option>
+                                    <option value="Home & Garden"
+                                        <?php echo (($_POST['category'] ?? '') === 'Home & Garden') ? 'selected' : ''; ?>>
+                                        Home & Garden</option>
+                                    <option value="Sports"
+                                        <?php echo (($_POST['category'] ?? '') === 'Sports') ? 'selected' : ''; ?>>
+                                        Sports</option>
+                                    <option value="Toys"
+                                        <?php echo (($_POST['category'] ?? '') === 'Toys') ? 'selected' : ''; ?>>Toys
+                                    </option>
+                                    <option value="Beauty"
+                                        <?php echo (($_POST['category'] ?? '') === 'Beauty') ? 'selected' : ''; ?>>
+                                        Beauty</option>
+                                    <option value="Food"
+                                        <?php echo (($_POST['category'] ?? '') === 'Food') ? 'selected' : ''; ?>>Food
+                                    </option>
+                                    <option value="Automotive"
+                                        <?php echo (($_POST['category'] ?? '') === 'Automotive') ? 'selected' : ''; ?>>
+                                        Automotive</option>
+                                    <option value="Health"
+                                        <?php echo (($_POST['category'] ?? '') === 'Health') ? 'selected' : ''; ?>>
+                                        Health</option>
+                                    <option value="Other"
+                                        <?php echo (($_POST['category'] ?? '') === 'Other') ? 'selected' : ''; ?>>Other
+                                    </option>
                                 </select>
                                 <div class="form-text">Optional - helps organize your products</div>
                             </div>
@@ -198,8 +220,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             <div class="col-md-6 mb-3">
                                 <label for="stock" class="form-label">Stock Quantity</label>
                                 <input type="number" class="form-control" id="stock" name="stock"
-                                    value="<?php echo htmlspecialchars($_POST['stock'] ?? '0'); ?>"
-                                    placeholder="0" min="0" max="999999">
+                                    value="<?php echo htmlspecialchars($_POST['stock'] ?? '0'); ?>" placeholder="0"
+                                    min="0" max="999999">
                                 <div class="form-text">Number of units in inventory</div>
                                 <div class="invalid-feedback">
                                     Please provide a valid stock quantity.
@@ -209,8 +231,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                         <div class="mb-4">
                             <label for="description" class="form-label">Product Description</label>
-                            <textarea class="form-control" id="description" name="description"
-                                rows="4" placeholder="Describe your product..."><?php echo htmlspecialchars($_POST['description'] ?? ''); ?></textarea>
+                            <textarea class="form-control" id="description" name="description" rows="4"
+                                placeholder="Describe your product..."><?php echo htmlspecialchars($_POST['description'] ?? ''); ?></textarea>
                             <div class="form-text">Optional - provide detailed information about the product</div>
                         </div>
 
@@ -251,61 +273,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 </main>
 
 <script>
-    document.getElementById('image').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        const preview = document.getElementById('imagePreview');
-        const label = document.getElementById('imageLabel');
+document.getElementById('image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const preview = document.getElementById('imagePreview');
+    const label = document.getElementById('imageLabel');
 
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-                label.innerHTML = `
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            label.innerHTML = `
                 <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
                 <div class="text-success">
                     <strong>${file.name}</strong>
                 </div>
                 <small class="text-muted">Click to change image</small>
             `;
-            };
-            reader.readAsDataURL(file);
-        } else {
-            preview.style.display = 'none';
-            label.innerHTML = `
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.style.display = 'none';
+        label.innerHTML = `
             <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
             <div class="text-muted">
                 <strong>Click to upload</strong> or drag and drop
             </div>
             <small class="text-muted">PNG, JPG, GIF, WebP up to 10MB</small>
         `;
+    }
+});
+
+setTimeout(() => {
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        if (alert.classList.contains('alert-success') || alert.classList.contains('alert-danger')) {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
         }
     });
+}, 5000);
 
-    setTimeout(() => {
-        const alerts = document.querySelectorAll('.alert');
-        alerts.forEach(alert => {
-            if (alert.classList.contains('alert-success') || alert.classList.contains('alert-danger')) {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            }
-        });
-    }, 5000);
-
-    document.querySelector('button[type="reset"]').addEventListener('click', function(e) {
-        if (!confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
-            e.preventDefault();
-        } else {
-            document.getElementById('imagePreview').style.display = 'none';
-            document.getElementById('imageLabel').innerHTML = `
+document.querySelector('button[type="reset"]').addEventListener('click', function(e) {
+    if (!confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
+        e.preventDefault();
+    } else {
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('imageLabel').innerHTML = `
             <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
             <div class="text-muted">
                 <strong>Click to upload</strong> or drag and drop
             </div>
             <small class="text-muted">PNG, JPG, GIF, WebP up to 10MB</small>
         `;
-        }
-    });
+    }
+});
 </script>
 
 </div>

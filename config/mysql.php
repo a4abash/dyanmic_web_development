@@ -2,21 +2,21 @@
 define('ABSPATH', __DIR__);
 require_once(__DIR__ . '/db.php');
 
-// create role table
+//  role table
 $rolesTable = "CREATE TABLE IF NOT EXISTS roles (
     id INT AUTO_INCREMENT PRIMARY KEY,
     role VARCHAR(50) NOT NULL UNIQUE,
     description TEXT
 )";
 
-// create permissions table
+//  permissions table
 $permissionsTable = "CREATE TABLE IF NOT EXISTS permissions (
     id INT AUTO_INCREMENT PRIMARY KEY,
     permission VARCHAR(100) NOT NULL UNIQUE,
     description TEXT
 )";
 
-// create users table
+//  users table
 $usersTable = "CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -32,7 +32,7 @@ $usersTable = "CREATE TABLE IF NOT EXISTS users (
         ON UPDATE CASCADE
 )";
 
-// create products table
+//  products table
 $productsTable = "CREATE TABLE IF NOT EXISTS products (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(150) NOT NULL,
@@ -47,7 +47,7 @@ $productsTable = "CREATE TABLE IF NOT EXISTS products (
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 )";
 
-// insert default roles
+//  default roles
 $insertRoles = "INSERT IGNORE INTO roles (role, description) VALUES
 ('admin', 'Full access to the system'),
 ('member', 'Registered member with limited access'),
@@ -56,7 +56,7 @@ $insertRoles = "INSERT IGNORE INTO roles (role, description) VALUES
 $insertAdminUser = "INSERT IGNORE INTO users (username, name, email, role_id, password) VALUES
 ('admin', 'Administrator', 'admin@gmail.com', 1, '" . password_hash('admin123', PASSWORD_DEFAULT) . "')";
 
-// Run queries
+//  queries
 if ($conn->query($rolesTable) === TRUE) {
     echo "Table 'roles' created successfully.<br>";
 } else {

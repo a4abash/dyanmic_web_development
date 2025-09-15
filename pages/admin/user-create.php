@@ -69,72 +69,78 @@ include 'includes/header.php';
 include 'includes/sidebar.php';
 ?>
 <main class="admin-content">
-  <div class="content-header">
-    <h1><i class="fas fa-user-plus me-2"></i>New User</h1>
-    <p>Create a new user account.</p>
-    <a href="users.php" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
-  </div>
+    <div class="content-header">
+        <h1><i class="fas fa-user-plus me-2"></i>New User</h1>
+        <p>Create a new user account.</p>
+        <a href="users.php" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+    </div>
 
-  <div class="content-body">
-    <?php if ($ok): ?>
-      <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="fas fa-check-circle me-2"></i><?php echo htmlspecialchars($ok); ?>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      </div>
-    <?php endif; ?>
-    <?php if ($errors): ?>
-      <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="fas fa-exclamation-circle me-2"></i>
-        <ul class="mb-0"><?php foreach ($errors as $e) echo '<li>'.htmlspecialchars($e).'</li>'; ?></ul>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-      </div>
-    <?php endif; ?>
+    <div class="content-body">
+        <?php if ($ok): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i><?php echo htmlspecialchars($ok); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php endif; ?>
+        <?php if ($errors): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <ul class="mb-0"><?php foreach ($errors as $e) echo '<li>'.htmlspecialchars($e).'</li>'; ?></ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php endif; ?>
 
-    <form method="post" class="card p-4">
-      <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+        <form method="post" class="card p-4">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
 
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label">Name</label>
-          <input type="text" name="name" class="form-control" required value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Email</label>
-          <input type="email" name="email" class="form-control" required value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Username</label>
-          <input type="text" name="username" class="form-control" required value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>">
-        </div>
-        <div class="col-md-3">
-          <label class="form-label">Role</label>
-          <select name="role_id" class="form-select" required>
-            <option value="">Select role…</option>
-            <?php foreach ($roles as $r): ?>
-              <option value="<?php echo (int)$r['id']; ?>" <?php echo ((int)($_POST['role_id'] ?? 0)===(int)$r['id']?'selected':''); ?>>
-                <?php echo htmlspecialchars(ucfirst($r['name'])); ?>
-              </option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-        <div class="col-md-3">
-          <label class="form-label">Status</label>
-          <select name="status" class="form-select">
-            <option value="active"   <?php echo (($_POST['status'] ?? '')==='inactive'?'':'selected'); ?>>Active</option>
-            <option value="inactive" <?php echo (($_POST['status'] ?? '')==='inactive'?'selected':''); ?>>Inactive</option>
-          </select>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Password</label>
-          <input type="password" name="password" class="form-control" minlength="6" required>
-        </div>
-      </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Name</label>
+                    <input type="text" name="name" class="form-control" required
+                        value="<?php echo htmlspecialchars($_POST['name'] ?? ''); ?>">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" required
+                        value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Username</label>
+                    <input type="text" name="username" class="form-control" required
+                        value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Role</label>
+                    <select name="role_id" class="form-select" required>
+                        <option value="">Select role…</option>
+                        <?php foreach ($roles as $r): ?>
+                        <option value="<?php echo (int)$r['id']; ?>"
+                            <?php echo ((int)($_POST['role_id'] ?? 0)===(int)$r['id']?'selected':''); ?>>
+                            <?php echo htmlspecialchars(ucfirst($r['name'])); ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="active" <?php echo (($_POST['status'] ?? '')==='inactive'?'':'selected'); ?>>
+                            Active</option>
+                        <option value="inactive" <?php echo (($_POST['status'] ?? '')==='inactive'?'selected':''); ?>>
+                            Inactive</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Password</label>
+                    <input type="password" name="password" class="form-control" minlength="6" required>
+                </div>
+            </div>
 
-      <div class="mt-4 d-flex gap-2">
-        <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>Create User</button>
-        <a href="users.php" class="btn btn-outline-secondary">Cancel</a>
-      </div>
-    </form>
-  </div>
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>Create User</button>
+                <a href="users.php" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
 </main>
 <?php include 'includes/footer.php'; ?>

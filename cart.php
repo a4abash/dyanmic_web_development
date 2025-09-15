@@ -1,783 +1,327 @@
 <?php
-// cart.php - Main cart handling file
+// cart.php
 require 'config/auth.php';
 require_once 'config/db.php';
-
-// Enhanced Cart Error Handler
-class CartErrorHandler {
-    private $errors = [];
-    private $success_messages = [];
-    
-    public function addError($message, $code = null) {
-        $this->errors[] = [
-            'message' => $message,
-            'code' => $code,
-            'timestamp' => date('Y-m-d H:i:s')
-        ];
-        error_log("Cart Error: {$message}" . ($code ? " (Code: {$code})" : ""));
-    }
-    
-    public function addSuccess($message) {
-        $this->success_messages[] = $message;
-    }
-    
-    public function hasErrors() {
-        return !empty($this->errors);
-    }
-    
-    public function getErrors() {
-        return array_map(function($error) {
-            return $error['message'];
-        }, $this->errors);
-    }
-    
-    public function getSuccessMessages() {
-        return $this->success_messages;
-    }
-    
-    public function clear() {
-        $this->errors = [];
-        $this->success_messages = [];
-    }
-}
-
-// Cart Management Class
-class ShoppingCart {
-    private $conn;
-    private $user_id;
-    private $session_id;
-    
-    public function __construct($database_connection, $user_id = null) {
-        $this->conn = $database_connection;
-        $this->user_id = $user_id;
-        $this->session_id = session_id();
-        
-        // Create cart table if it doesn't exist
-        $this->createCartTable();
-    }
-    
-    private function createCartTable() {
-        $sql = "CREATE TABLE IF NOT EXISTS cart_items (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NULL,
-            session_id VARCHAR(128) NULL,
-            product_id INT NOT NULL,
-            quantity INT NOT NULL DEFAULT 1,
-            added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            INDEX idx_user_id (user_id),
-            INDEX idx_session_id (session_id),
-            INDEX idx_product_id (product_id),
-            FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-        ) ENGINE=InnoDB";
-        
-        try {
-            $this->conn->query($sql);
-        } catch (Exception $e) {
-            error_log("Failed to create cart table: " . $e->getMessage());
-        }
-    }
-    
-    public function addToCart($product_id, $quantity = 1) {
-        $errorHandler = new CartErrorHandler();
-        
-        try {
-            // Validate inputs
-            $product_id = (int)$product_id;
-            $quantity = (int)$quantity;
-            
-            if ($product_id <= 0) {
-                $errorHandler->addError('Invalid product ID.', 'INVALID_PRODUCT_ID');
-                return $errorHandler;
-            }
-            
-            if ($quantity <= 0) {
-                $errorHandler->addError('Quantity must be greater than 0.', 'INVALID_QUANTITY');
-                return $errorHandler;
-            }
-            
-            if ($quantity > 99) {
-                $errorHandler->addError('Maximum quantity per item is 99.', 'QUANTITY_LIMIT');
-                return $errorHandler;
-            }
-            
-            // Check if product exists and get stock
-            $stmt = $this->conn->prepare("SELECT id, name, stock, price FROM products WHERE id = ?");
-            if (!$stmt) {
-                $errorHandler->addError('Database error occurred.', 'DB_PREPARE_FAILED');
-                return $errorHandler;
-            }
-            
-            $stmt->bind_param("i", $product_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $product = $result->fetch_assoc();
-            $stmt->close();
-            
-            if (!$product) {
-                $errorHandler->addError('Product not found.', 'PRODUCT_NOT_FOUND');
-                return $errorHandler;
-            }
-            
-            // Check current cart quantity for this product
-            $current_cart_qty = $this->getCartQuantity($product_id);
-            $total_requested = $current_cart_qty + $quantity;
-            
-            if ($total_requested > $product['stock']) {
-                $available = $product['stock'] - $current_cart_qty;
-                if ($available <= 0) {
-                    $errorHandler->addError('This product is already at maximum available quantity in your cart.', 'STOCK_EXCEEDED');
-                } else {
-                    $errorHandler->addError("Only {$available} units available to add (you already have {$current_cart_qty} in cart).", 'INSUFFICIENT_STOCK');
-                }
-                return $errorHandler;
-            }
-            
-            // Begin transaction
-            $this->conn->begin_transaction();
-            
-            // Check if item already exists in cart
-            $check_sql = "SELECT id, quantity FROM cart_items WHERE product_id = ? AND " . 
-                        ($this->user_id ? "user_id = ?" : "session_id = ?");
-            $check_stmt = $this->conn->prepare($check_sql);
-            
-            if ($this->user_id) {
-                $check_stmt->bind_param("ii", $product_id, $this->user_id);
-            } else {
-                $check_stmt->bind_param("is", $product_id, $this->session_id);
-            }
-            
-            $check_stmt->execute();
-            $existing_item = $check_stmt->get_result()->fetch_assoc();
-            $check_stmt->close();
-            
-            if ($existing_item) {
-                // Update existing item
-                $new_quantity = $existing_item['quantity'] + $quantity;
-                $update_sql = "UPDATE cart_items SET quantity = ?, updated_at = NOW() WHERE id = ?";
-                $update_stmt = $this->conn->prepare($update_sql);
-                $update_stmt->bind_param("ii", $new_quantity, $existing_item['id']);
-                
-                if (!$update_stmt->execute()) {
-                    throw new Exception("Failed to update cart item: " . $update_stmt->error);
-                }
-                $update_stmt->close();
-                
-                $errorHandler->addSuccess("Updated {$product['name']} quantity to {$new_quantity} in cart.");
-            } else {
-                // Insert new item
-                $insert_sql = "INSERT INTO cart_items (user_id, session_id, product_id, quantity) VALUES (?, ?, ?, ?)";
-                $insert_stmt = $this->conn->prepare($insert_sql);
-                $insert_stmt->bind_param("isii", $this->user_id, $this->session_id, $product_id, $quantity);
-                
-                if (!$insert_stmt->execute()) {
-                    throw new Exception("Failed to add item to cart: " . $insert_stmt->error);
-                }
-                $insert_stmt->close();
-                
-                $errorHandler->addSuccess("Added {$product['name']} to cart.");
-            }
-            
-            // Commit transaction
-            $this->conn->commit();
-            
-        } catch (Exception $e) {
-            // Rollback transaction
-            $this->conn->rollback();
-            $errorHandler->addError('Failed to add item to cart: ' . $e->getMessage(), 'DB_ERROR');
-        }
-        
-        return $errorHandler;
-    }
-    
-    private function getCartQuantity($product_id) {
-        $sql = "SELECT SUM(quantity) as total FROM cart_items WHERE product_id = ? AND " . 
-               ($this->user_id ? "user_id = ?" : "session_id = ?");
-        $stmt = $this->conn->prepare($sql);
-        
-        if ($this->user_id) {
-            $stmt->bind_param("ii", $product_id, $this->user_id);
-        } else {
-            $stmt->bind_param("is", $product_id, $this->session_id);
-        }
-        
-        $stmt->execute();
-        $result = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        
-        return (int)($result['total'] ?? 0);
-    }
-    
-    public function getCartItems() {
-        $sql = "SELECT c.id as cart_id, c.quantity, c.added_at, c.updated_at,
-                       p.id, p.name, p.description, p.price, p.image, p.stock
-                FROM cart_items c
-                JOIN products p ON c.product_id = p.id
-                WHERE " . ($this->user_id ? "c.user_id = ?" : "c.session_id = ?") . "
-                ORDER BY c.updated_at DESC";
-        
-        $stmt = $this->conn->prepare($sql);
-        
-        if ($this->user_id) {
-            $stmt->bind_param("i", $this->user_id);
-        } else {
-            $stmt->bind_param("s", $this->session_id);
-        }
-        
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $items = $result->fetch_all(MYSQLI_ASSOC);
-        $stmt->close();
-        
-        return $items;
-    }
-    
-    public function updateQuantity($cart_id, $quantity) {
-        $errorHandler = new CartErrorHandler();
-        
-        try {
-            $cart_id = (int)$cart_id;
-            $quantity = (int)$quantity;
-            
-            if ($quantity <= 0) {
-                return $this->removeItem($cart_id);
-            }
-            
-            if ($quantity > 99) {
-                $errorHandler->addError('Maximum quantity per item is 99.', 'QUANTITY_LIMIT');
-                return $errorHandler;
-            }
-            
-            // Get cart item and product info
-            $sql = "SELECT c.*, p.name, p.stock 
-                    FROM cart_items c 
-                    JOIN products p ON c.product_id = p.id 
-                    WHERE c.id = ? AND " . ($this->user_id ? "c.user_id = ?" : "c.session_id = ?");
-            
-            $stmt = $this->conn->prepare($sql);
-            
-            if ($this->user_id) {
-                $stmt->bind_param("ii", $cart_id, $this->user_id);
-            } else {
-                $stmt->bind_param("is", $cart_id, $this->session_id);
-            }
-            
-            $stmt->execute();
-            $cart_item = $stmt->get_result()->fetch_assoc();
-            $stmt->close();
-            
-            if (!$cart_item) {
-                $errorHandler->addError('Cart item not found.', 'CART_ITEM_NOT_FOUND');
-                return $errorHandler;
-            }
-            
-            if ($quantity > $cart_item['stock']) {
-                $errorHandler->addError("Only {$cart_item['stock']} units available.", 'INSUFFICIENT_STOCK');
-                return $errorHandler;
-            }
-            
-            // Update quantity
-            $update_sql = "UPDATE cart_items SET quantity = ?, updated_at = NOW() WHERE id = ?";
-            $update_stmt = $this->conn->prepare($update_sql);
-            $update_stmt->bind_param("ii", $quantity, $cart_id);
-            
-            if (!$update_stmt->execute()) {
-                throw new Exception("Failed to update quantity: " . $update_stmt->error);
-            }
-            $update_stmt->close();
-            
-            $errorHandler->addSuccess("Updated {$cart_item['name']} quantity to {$quantity}.");
-            
-        } catch (Exception $e) {
-            $errorHandler->addError('Failed to update cart: ' . $e->getMessage(), 'DB_ERROR');
-        }
-        
-        return $errorHandler;
-    }
-    
-    public function removeItem($cart_id) {
-        $errorHandler = new CartErrorHandler();
-        
-        try {
-            $cart_id = (int)$cart_id;
-            
-            // Get item name before deletion
-            $sql = "SELECT p.name FROM cart_items c 
-                    JOIN products p ON c.product_id = p.id 
-                    WHERE c.id = ? AND " . ($this->user_id ? "c.user_id = ?" : "c.session_id = ?");
-            
-            $stmt = $this->conn->prepare($sql);
-            
-            if ($this->user_id) {
-                $stmt->bind_param("ii", $cart_id, $this->user_id);
-            } else {
-                $stmt->bind_param("is", $cart_id, $this->session_id);
-            }
-            
-            $stmt->execute();
-            $result = $stmt->get_result()->fetch_assoc();
-            $stmt->close();
-            
-            if (!$result) {
-                $errorHandler->addError('Cart item not found.', 'CART_ITEM_NOT_FOUND');
-                return $errorHandler;
-            }
-            
-            // Delete the item
-            $delete_sql = "DELETE FROM cart_items WHERE id = ? AND " . 
-                         ($this->user_id ? "user_id = ?" : "session_id = ?");
-            $delete_stmt = $this->conn->prepare($delete_sql);
-            
-            if ($this->user_id) {
-                $delete_stmt->bind_param("ii", $cart_id, $this->user_id);
-            } else {
-                $delete_stmt->bind_param("is", $cart_id, $this->session_id);
-            }
-            
-            if (!$delete_stmt->execute()) {
-                throw new Exception("Failed to remove item: " . $delete_stmt->error);
-            }
-            $delete_stmt->close();
-            
-            $errorHandler->addSuccess("Removed {$result['name']} from cart.");
-            
-        } catch (Exception $e) {
-            $errorHandler->addError('Failed to remove item from cart: ' . $e->getMessage(), 'DB_ERROR');
-        }
-        
-        return $errorHandler;
-    }
-    
-    public function getCartCount() {
-        $sql = "SELECT SUM(quantity) as total FROM cart_items WHERE " . 
-               ($this->user_id ? "user_id = ?" : "session_id = ?");
-        $stmt = $this->conn->prepare($sql);
-        
-        if ($this->user_id) {
-            $stmt->bind_param("i", $this->user_id);
-        } else {
-            $stmt->bind_param("s", $this->session_id);
-        }
-        
-        $stmt->execute();
-        $result = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        
-        return (int)($result['total'] ?? 0);
-    }
-    
-    public function getCartTotal() {
-        $sql = "SELECT SUM(c.quantity * p.price) as total 
-                FROM cart_items c 
-                JOIN products p ON c.product_id = p.id 
-                WHERE " . ($this->user_id ? "c.user_id = ?" : "c.session_id = ?");
-        
-        $stmt = $this->conn->prepare($sql);
-        
-        if ($this->user_id) {
-            $stmt->bind_param("i", $this->user_id);
-        } else {
-            $stmt->bind_param("s", $this->session_id);
-        }
-        
-        $stmt->execute();
-        $result = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        
-        return (float)($result['total'] ?? 0);
-    }
-    
-    public function clearCart() {
-        $errorHandler = new CartErrorHandler();
-        
-        try {
-            $sql = "DELETE FROM cart_items WHERE " . 
-                   ($this->user_id ? "user_id = ?" : "session_id = ?");
-            $stmt = $this->conn->prepare($sql);
-            
-            if ($this->user_id) {
-                $stmt->bind_param("i", $this->user_id);
-            } else {
-                $stmt->bind_param("s", $this->session_id);
-            }
-            
-            if (!$stmt->execute()) {
-                throw new Exception("Failed to clear cart: " . $stmt->error);
-            }
-            $stmt->close();
-            
-            $errorHandler->addSuccess("Cart cleared successfully.");
-            
-        } catch (Exception $e) {
-            $errorHandler->addError('Failed to clear cart: ' . $e->getMessage(), 'DB_ERROR');
-        }
-        
-        return $errorHandler;
-    }
-}
-
-// Initialize cart system
-$user_id = $_SESSION['user_id'] ?? null;
-$cart = new ShoppingCart($conn, $user_id);
-$errorHandler = new CartErrorHandler();
-
-// Handle different cart actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? 'add';
-    
-    switch ($action) {
-        case 'add':
-            $product_id = $_POST['product_id'] ?? 0;
-            $quantity = $_POST['quantity'] ?? 1;
-            $result = $cart->addToCart($product_id, $quantity);
-            
-            if ($result->hasErrors()) {
-                foreach ($result->getErrors() as $error) {
-                    $errorHandler->addError($error);
-                }
-            } else {
-                foreach ($result->getSuccessMessages() as $success) {
-                    $errorHandler->addSuccess($success);
-                }
-            }
-            break;
-            
-        case 'update':
-            $cart_id = $_POST['cart_id'] ?? 0;
-            $quantity = $_POST['quantity'] ?? 1;
-            $result = $cart->updateQuantity($cart_id, $quantity);
-            
-            if ($result->hasErrors()) {
-                foreach ($result->getErrors() as $error) {
-                    $errorHandler->addError($error);
-                }
-            } else {
-                foreach ($result->getSuccessMessages() as $success) {
-                    $errorHandler->addSuccess($success);
-                }
-            }
-            break;
-            
-        case 'remove':
-            $cart_id = $_POST['cart_id'] ?? 0;
-            $result = $cart->removeItem($cart_id);
-            
-            if ($result->hasErrors()) {
-                foreach ($result->getErrors() as $error) {
-                    $errorHandler->addError($error);
-                }
-            } else {
-                foreach ($result->getSuccessMessages() as $success) {
-                    $errorHandler->addSuccess($success);
-                }
-            }
-            break;
-            
-        case 'clear':
-            $result = $cart->clearCart();
-            
-            if ($result->hasErrors()) {
-                foreach ($result->getErrors() as $error) {
-                    $errorHandler->addError($error);
-                }
-            } else {
-                foreach ($result->getSuccessMessages() as $success) {
-                    $errorHandler->addSuccess($success);
-                }
-            }
-            break;
-    }
-    
-    // Redirect to prevent form resubmission
-    header("Location: " . $_SERVER['PHP_SELF'] . "?updated=1");
-    exit();
-}
-
-// Get cart items for display
-$cart_items = $cart->getCartItems();
-$cart_count = $cart->getCartCount();
-$cart_total = $cart->getCartTotal();
-
 include 'includes/header.php';
+
+if (!isset($_SESSION)) session_start();
+if (!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
+
+/** Helpers */
+function redirect_with($params = []) {
+    $base = 'cart.php';
+    if (!empty($params)) $base .= '?' . http_build_query($params);
+    header("Location: {$base}");
+    exit;
+}
+function money($n) { return number_format((float)$n, 2); }
+
+/** Actions */
+$action = $_GET['action'] ?? '';
+try {
+    if ($action === 'add' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $pid = (int)($_POST['product_id'] ?? 0);
+        $qty = max(1, (int)($_POST['qty'] ?? 1));
+
+        // Validate product from DB
+        $stmt = $conn->prepare("SELECT id, name, price, stock, image FROM products WHERE id=? LIMIT 1");
+        $stmt->bind_param("i", $pid);
+        $stmt->execute();
+        $prod = $stmt->get_result()->fetch_assoc();
+
+        if (!$prod) {
+            redirect_with(['error' => 'Product not found']);
+        }
+
+        // Cap qty to stock
+        $qty = min($qty, (int)$prod['stock']);
+
+        // Merge/increment if exists
+        if (isset($_SESSION['cart'][$pid])) {
+            $newQty = $_SESSION['cart'][$pid]['qty'] + $qty;
+            $_SESSION['cart'][$pid]['qty'] = min($newQty, (int)$prod['stock']);
+        } else {
+            $_SESSION['cart'][$pid] = [
+                'id'    => (int)$prod['id'],
+                'name'  => $prod['name'],
+                'price' => (float)$prod['price'],
+                'qty'   => $qty,
+                'image' => $prod['image'],
+                'stock' => (int)$prod['stock'],
+            ];
+        }
+        redirect_with(['updated' => 1]);
+    }
+
+    if ($action === 'update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Bulk quantity update
+        foreach ($_POST['qty'] ?? [] as $pid => $q) {
+            $pid = (int)$pid;
+            $q   = max(1, (int)$q);
+
+            if (isset($_SESSION['cart'][$pid])) {
+                $q = min($q, (int)$_SESSION['cart'][$pid]['stock']);
+                $_SESSION['cart'][$pid]['qty'] = $q;
+            }
+        }
+        redirect_with(['updated' => 1]);
+    }
+
+    if ($action === 'remove' && isset($_GET['id'])) {
+        $pid = (int)$_GET['id'];
+        unset($_SESSION['cart'][$pid]);
+        redirect_with(['updated' => 1]);
+    }
+
+    if ($action === 'clear') {
+        $_SESSION['cart'] = [];
+        redirect_with(['updated' => 1]);
+    }
+} catch (Throwable $e) {
+    error_log("Cart error: " . $e->getMessage());
+    redirect_with(['error' => 'Cart error']);
+}
+
+/** Compute totals */
+$items = array_values($_SESSION['cart']);
+$subtotal = 0.0;
+foreach ($items as $it) {
+    $subtotal += $it['price'] * $it['qty'];
+}
+$shipping = 0.00; // flat free shipping
+$total = $subtotal + $shipping;
 ?>
 
-<main class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1><i class="fas fa-shopping-cart me-2"></i>Shopping Cart</h1>
-                <div class="cart-summary">
-                    <span class="badge bg-primary fs-6"><?php echo $cart_count; ?> items</span>
-                    <span class="text-muted ms-2">Total: $<?php echo number_format($cart_total, 2); ?></span>
+<title>Shopping Cart - Ripper Tech & Solutions</title>
+
+<style>
+.cart-wrap {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 24px;
+    margin: 24px auto;
+    max-width: 1100px;
+}
+
+.cart-card,
+.summary-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+    padding: 16px 18px;
+}
+
+.cart-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cart-items {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.cart-items th,
+.cart-items td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+
+.cart-items th {
+    text-align: left;
+    color: #556;
+}
+
+.cart-thumb {
+    width: 70px;
+    height: 70px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid #eee;
+}
+
+.qty-input {
+    width: 72px;
+    padding: 6px;
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.muted {
+    color: #6c757d;
+    font-size: .9rem;
+}
+
+.actions-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.summary-card h3 {
+    font-size: 1.25rem;
+    margin-bottom: 10px;
+}
+
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+}
+
+.summary-total {
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-top: 1px solid #eee;
+    padding-top: 10px;
+    margin-top: 8px;
+}
+
+.btn {
+    display: inline-block;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: #0d6efd;
+    color: #fff;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: #fff;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid #ddd;
+    color: #333;
+}
+
+.btn-link {
+    background: transparent;
+    color: #0d6efd;
+    text-decoration: underline;
+    padding: 0;
+}
+
+.alert {
+    margin: 10px 0 0;
+    padding: 10px 12px;
+    border-radius: 8px;
+}
+
+.alert-success {
+    background: #e7f6ec;
+    color: #256c3b;
+}
+
+.alert-danger {
+    background: #fdeaea;
+    color: #842029;
+}
+
+@media (max-width: 900px) {
+    .cart-wrap {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<section class="cart-wrap">
+
+    <div class="cart-card" role="region" aria-label="Shopping cart items">
+        <div class="cart-title">🛒 Shopping Cart</div>
+
+        <?php if (isset($_GET['updated'])): ?>
+        <div class="alert alert-success" role="alert">Cart updated.</div>
+        <?php endif; ?>
+        <?php if (isset($_GET['error'])): ?>
+        <div class="alert alert-danger" role="alert"><?= htmlspecialchars($_GET['error']) ?></div>
+        <?php endif; ?>
+
+        <?php if (empty($items)): ?>
+        <p class="muted">Your cart is empty.</p>
+        <a class="btn btn-outline" href="products.php">← Continue Shopping</a>
+        <?php else: ?>
+        <form method="post" action="cart.php?action=update">
+            <table class="cart-items">
+                <thead>
+                    <tr>
+                        <th scope="col">Product</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Qty</th>
+                        <th scope="col" class="text-right">Subtotal</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($items as $it): ?>
+                    <tr>
+                        <td>
+                            <div style="display:flex; gap:12px; align-items:center;">
+                                <img class="cart-thumb" src="uploads/<?= htmlspecialchars($it['image']) ?>"
+                                    alt="<?= htmlspecialchars($it['name']) ?>">
+                                <div>
+                                    <div><strong><?= htmlspecialchars($it['name']) ?></strong></div>
+                                    <div class="muted">In stock: <?= (int)$it['stock'] ?></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>$<?= money($it['price']) ?></td>
+                        <td>
+                            <label for="q_<?= (int)$it['id'] ?>" class="visually-hidden">Quantity for
+                                <?= htmlspecialchars($it['name']) ?></label>
+                            <input id="q_<?= (int)$it['id'] ?>" class="qty-input" type="number" min="1"
+                                max="<?= (int)$it['stock'] ?>" name="qty[<?= (int)$it['id'] ?>]"
+                                value="<?= (int)$it['qty'] ?>">
+                        </td>
+                        <td class="text-right">$<?= money($it['price'] * $it['qty']) ?></td>
+                        <td class="actions-row">
+                            <a class="btn btn-link" href="cart.php?action=remove&id=<?= (int)$it['id'] ?>"
+                                aria-label="Remove <?= htmlspecialchars($it['name']) ?>">Remove</a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+
+            <div style="display:flex; justify-content:space-between; margin-top:14px;">
+                <a class="btn btn-outline" href="products.php">← Continue Shopping</a>
+                <div>
+                    <a class="btn btn-danger" href="cart.php?action=clear"
+                        onclick="return confirm('Clear all items from cart?')">Clear Cart</a>
                 </div>
             </div>
-            
-            <!-- Success/Error Messages -->
-            <?php if (isset($_GET['updated']) && !empty($errorHandler->getSuccessMessages())): ?>
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle me-2"></i>
-                    <?php foreach ($errorHandler->getSuccessMessages() as $message): ?>
-                        <div><?php echo htmlspecialchars($message); ?></div>
-                    <?php endforeach; ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            <?php endif; ?>
-            
-            <?php if (isset($_GET['updated']) && $errorHandler->hasErrors()): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-circle me-2"></i>
-                    <?php foreach ($errorHandler->getErrors() as $error): ?>
-                        <div><?php echo htmlspecialchars($error); ?></div>
-                    <?php endforeach; ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            <?php endif; ?>
-            
-            <?php if (empty($cart_items)): ?>
-                <!-- Empty Cart -->
-                <div class="card">
-                    <div class="card-body text-center py-5">
-                        <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
-                        <h3 class="text-muted">Your cart is empty</h3>
-                        <p class="text-muted mb-4">Add some products to get started!</p>
-                        <a href="products.php" class="btn btn-primary">
-                            <i class="fas fa-arrow-left me-2"></i>Continue Shopping
-                        </a>
-                    </div>
-                </div>
-            <?php else: ?>
-                <!-- Cart Items -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Cart Items</h5>
-                            <form method="post" style="display: inline;">
-                                <input type="hidden" name="action" value="clear">
-                                <button type="submit" class="btn btn-outline-danger btn-sm" 
-                                        onclick="return confirm('Are you sure you want to clear your entire cart?')">
-                                    <i class="fas fa-trash me-1"></i>Clear Cart
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="card-body p-0">
-                        <?php foreach ($cart_items as $item): ?>
-                            <div class="cart-item border-bottom p-3">
-                                <div class="row align-items-center">
-                                    <div class="col-md-2">
-                                        <div class="product-image-wrapper">
-                                            <?php if (!empty($item['image'])): ?>
-                                                <img src="uploads/<?php echo htmlspecialchars($item['image']); ?>" 
-                                                     alt="<?php echo htmlspecialchars($item['name']); ?>"
-                                                     class="cart-product-image">
-                                            <?php else: ?>
-                                                <div class="cart-product-placeholder">
-                                                    <i class="fas fa-image text-muted"></i>
-                                                </div>
-                                            <?php endif; ?>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <h6 class="mb-1"><?php echo htmlspecialchars($item['name']); ?></h6>
-                                        <p class="text-muted mb-1 small">
-                                            <?php echo htmlspecialchars(substr($item['description'], 0, 100)); ?>
-                                            <?php if (strlen($item['description']) > 100): ?>...<?php endif; ?>
-                                        </p>
-                                        <small class="text-muted">
-                                            Stock: <?php echo $item['stock']; ?> available
-                                        </small>
-                                    </div>
-                                    <div class="col-md-2 text-center">
-                                        <strong>$<?php echo number_format($item['price'], 2); ?></strong>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <form method="post" class="quantity-form">
-                                            <input type="hidden" name="action" value="update">
-                                            <input type="hidden" name="cart_id" value="<?php echo $item['cart_id']; ?>">
-                                            <div class="input-group input-group-sm">
-                                                <button type="button" class="btn btn-outline-secondary qty-btn" data-action="decrease">-</button>
-                                                <input type="number" name="quantity" class="form-control text-center quantity-input" 
-                                                       value="<?php echo $item['quantity']; ?>" min="0" max="<?php echo $item['stock']; ?>">
-                                                <button type="button" class="btn btn-outline-secondary qty-btn" data-action="increase">+</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="col-md-2 text-center">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <strong>$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></strong>
-                                            <form method="post" style="display: inline;">
-                                                <input type="hidden" name="action" value="remove">
-                                                <input type="hidden" name="cart_id" value="<?php echo $item['cart_id']; ?>">
-                                                <button type="submit" class="btn btn-outline-danger btn-sm" 
-                                                        onclick="return confirm('Remove this item from cart?')"
-                                                        title="Remove item">
-                                                    <i class="fas fa-times"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-                
-                <!-- Cart Summary -->
-                <div class="row mt-4">
-                    <div class="col-md-8">
-                        <a href="products.php" class="btn btn-outline-primary">
-                            <i class="fas fa-arrow-left me-2"></i>Continue Shopping
-                        </a>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">Order Summary</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Subtotal (<?php echo $cart_count; ?> items):</span>
-                                    <strong>$<?php echo number_format($cart_total, 2); ?></strong>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span>Shipping:</span>
-                                    <span class="text-success">Free</span>
-                                </div>
-                                <hr>
-                                <div class="d-flex justify-content-between mb-3">
-                                    <strong>Total:</strong>
-                                    <strong class="text-primary">$<?php echo number_format($cart_total, 2); ?></strong>
-                                </div>
-                                <button type="button" class="btn btn-success w-100" onclick="proceedToCheckout()">
-                                    <i class="fas fa-credit-card me-2"></i>Proceed to Checkout
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
-        </div>
+        </form>
+        <?php endif; ?>
     </div>
-</main>
 
-<script>
-// Quantity button handlers
-document.addEventListener('DOMContentLoaded', function() {
-    const qtyBtns = document.querySelectorAll('.qty-btn');
-    
-    qtyBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const form = this.closest('.quantity-form');
-            const input = form.querySelector('.quantity-input');
-            const action = this.dataset.action;
-            const max = parseInt(input.max);
-            let currentValue = parseInt(input.value);
-            
-            if (action === 'increase' && currentValue < max) {
-                input.value = currentValue + 1;
-                form.submit();
-            } else if (action === 'decrease' && currentValue > 0) {
-                input.value = currentValue - 1;
-                form.submit();
-            }
-        });
-    });
-    
-    // Auto-submit quantity changes after delay
-    const quantityInputs = document.querySelectorAll('.quantity-input');
-    quantityInputs.forEach(input => {
-        let timeout;
-        input.addEventListener('input', function() {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => {
-                if (this.value !== this.defaultValue) {
-                    this.closest('form').submit();
-                }
-            }, 1000);
-        });
-    });
-});
+    <aside class="summary-card" role="region" aria-label="Order summary">
+        <h3>Order Summary</h3>
 
-// Auto-dismiss alerts
-setTimeout(() => {
-    const alerts = document.querySelectorAll('.alert-dismissible');
-    alerts.forEach(alert => {
-        const bsAlert = new bootstrap.Alert(alert);
-        setTimeout(() => {
-            bsAlert.close();
-        }, 5000);
-    });
-}, 100);
+        <div class="summary-line"><span>Subtotal</span><strong>$<?= money($subtotal) ?></strong></div>
+        <div class="summary-line">
+            <span>Shipping</span><strong><?= ($shipping == 0 ? 'Free' : '$' . money($shipping)) ?></strong></div>
+        <div class="summary-line summary-total"><span>Total</span><strong>$<?= money($total) ?></strong></div>
 
-function proceedToCheckout() {
-    // Implement checkout functionality
-    alert('Checkout functionality would be implemented here!');
-    // window.location.href = 'checkout.php';
-}
-</script>
+        <div style="margin-top: 14px;">
+            <button class="btn btn-primary" type="button" onclick="alert('Checkout flow not implemented yet')">Proceed
+                to Checkout</button>
+        </div>
+    </aside>
+
+</section>
 
 <?php include 'includes/footer.php'; ?>
-
-<!-- Additional JavaScript for enhanced cart functionality -->
-<script>
-// Add to cart with AJAX (for better UX)
-function addToCartAjax(productId, quantity = 1) {
-    const formData = new FormData();
-    formData.append('action', 'add');
-    formData.append('product_id', productId);
-    formData.append('quantity', quantity);
-    
-    fetch('cart.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.text())
-    .then(data => {
-        // Show success notification
-        showNotification('Product added to cart!', 'success');
-        updateCartBadge();
-    })
-    .catch(error => {
-        showNotification('Error adding product to cart', 'error');
-        console.error('Error:', error);
-    });
-}
-
-// Update cart badge count
-function updateCartBadge() {
-    fetch('get_cart_count.php')
-    .then(response => response.json())
-    .then(data => {
-        const badge = document.querySelector('.cart-badge');
-        if (badge) {
-            badge.textContent = data.count;
-            badge.style.display = data.count > 0 ? 'inline' : 'none';
-        }
-    });
-}
-
-// Show notification
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `alert alert-${type === 'error' ? 'danger' : 'success'} alert-dismissible fade show position-fixed`;
-    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-    notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.remove();
-        }
-    }, 5000);
-}
-
-// Initialize cart badge on page load
-document.addEventListener('DOMContentLoaded', function() {
-    updateCartBadge();
-});
-</script>

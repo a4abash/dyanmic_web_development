@@ -94,8 +94,7 @@ try {
                 <div class="col-md-6">
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-search"></i></span>
-                        <input type="text" class="form-control" id="searchInput" 
-                               placeholder="Search roles...">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Search roles...">
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -140,7 +139,7 @@ try {
                     </tr>
                     <?php else: ?>
                     <?php foreach ($roles as $role): ?>
-                    <tr data-role-name="<?php echo strtolower(htmlspecialchars($role['role'])); ?>" 
+                    <tr data-role-name="<?php echo strtolower(htmlspecialchars($role['role'])); ?>"
                         data-description="<?php echo strtolower(htmlspecialchars($role['description'])); ?>"
                         data-user-count="<?php echo $role['user_count']; ?>">
                         <td>
@@ -162,7 +161,8 @@ try {
                                         $iconColor = 'text-secondary';
                                     }
                                     ?>
-                                    <i class="<?php echo $icon; ?> <?php echo $iconColor; ?>" style="font-size: 1.5rem;"></i>
+                                    <i class="<?php echo $icon; ?> <?php echo $iconColor; ?>"
+                                        style="font-size: 1.5rem;"></i>
                                 </div>
                                 <div class="role-info">
                                     <h6 class="mb-0 fw-bold"><?php echo htmlspecialchars($role['role']); ?></h6>
@@ -172,35 +172,35 @@ try {
                         </td>
                         <td>
                             <?php if ($role['description']): ?>
-                                <div class="description-text" title="<?php echo htmlspecialchars($role['description']); ?>">
-                                    <?php echo htmlspecialchars($role['description']); ?>
-                                </div>
+                            <div class="description-text" title="<?php echo htmlspecialchars($role['description']); ?>">
+                                <?php echo htmlspecialchars($role['description']); ?>
+                            </div>
                             <?php else: ?>
-                                <span class="text-muted fst-italic">No description provided</span>
+                            <span class="text-muted fst-italic">No description provided</span>
                             <?php endif; ?>
                         </td>
                         <td>
                             <div class="d-flex align-items-center">
                                 <?php if ($role['user_count'] > 0): ?>
-                                    <span class="badge bg-primary me-2"><?php echo $role['user_count']; ?></span>
-                                    <a href="users.php?role=<?php echo urlencode($role['role']); ?>" 
-                                       class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-users me-1"></i>View Users
-                                    </a>
+                                <span class="badge bg-primary me-2"><?php echo $role['user_count']; ?></span>
+                                <a href="users.php?role=<?php echo urlencode($role['role']); ?>"
+                                    class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-users me-1"></i>View Users
+                                </a>
                                 <?php else: ?>
-                                    <span class="text-muted">No users assigned</span>
+                                <span class="text-muted">No users assigned</span>
                                 <?php endif; ?>
                             </div>
                         </td>
                         <td>
                             <?php if ($role['user_count'] > 0): ?>
-                                <span class="badge bg-success">
-                                    <i class="fas fa-check-circle me-1"></i>Active
-                                </span>
+                            <span class="badge bg-success">
+                                <i class="fas fa-check-circle me-1"></i>Active
+                            </span>
                             <?php else: ?>
-                                <span class="badge bg-secondary">
-                                    <i class="fas fa-pause-circle me-1"></i>Unused
-                                </span>
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-pause-circle me-1"></i>Unused
+                            </span>
                             <?php endif; ?>
                         </td>
                         <!-- <td>
@@ -273,26 +273,26 @@ function filterRoles() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const usageFilter = document.getElementById('usageFilter').value;
     const rows = document.querySelectorAll('#rolesTableBody tr[data-role-name]');
-    
+
     rows.forEach(row => {
         const roleName = row.getAttribute('data-role-name');
         const description = row.getAttribute('data-description');
         const userCount = parseInt(row.getAttribute('data-user-count'));
-        
+
         let showRow = true;
-        
+
         // Search filter
         if (searchTerm && !roleName.includes(searchTerm) && !description.includes(searchTerm)) {
             showRow = false;
         }
-        
+
         // Usage filter
         if (usageFilter === 'active' && userCount === 0) {
             showRow = false;
         } else if (usageFilter === 'unused' && userCount > 0) {
             showRow = false;
         }
-        
+
         row.style.display = showRow ? '' : 'none';
     });
 }

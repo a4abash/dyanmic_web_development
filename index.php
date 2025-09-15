@@ -11,7 +11,8 @@ include 'includes/header.php';
         <h1>RTS <br />A Tech company with vision to help you !!!</h1>
 
         <p>We design and develop modern website, mobile application, cloud solution and security services.
-            From fast secured hosting to responsive and interactive websites, we turn your dream into reality through digital transformation.</p>
+            From fast secured hosting to responsive and interactive websites, we turn your dream into reality through
+            digital transformation.</p>
         <a href="services.html" class="btn">Explore Services</a>
     </div>
 </section>

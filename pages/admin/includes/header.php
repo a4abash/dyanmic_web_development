@@ -21,20 +21,21 @@ if (isset($_GET['debug'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin Panel</title>
     <link rel="stylesheet" href="../../assets/admin/css/style.css" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 
 </head>
 <style>
-    .admin-header .logo img {
-            height: 95px;
-            width: 130px;
-        }
+.admin-header .logo img {
+    height: 95px;
+    width: 130px;
+}
 
-    .admin-header {
-        padding: fixed;
-        padding: 60px;
-    }    
-    </style>
+.admin-header {
+    padding: fixed;
+    padding: 60px;
+}
+</style>
 
 <body>
     <a class="skip-link" href="#main">Skip to main content</a>

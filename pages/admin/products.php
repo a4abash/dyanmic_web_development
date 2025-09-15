@@ -116,8 +116,7 @@ try {
                 <div class="col-md-4">
                     <div class="input-group">
                         <span class="input-group-text"><i class="fas fa-search"></i></span>
-                        <input type="text" class="form-control" id="searchInput" 
-                               placeholder="Search products...">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Search products...">
                     </div>
                 </div>
                 <div class="col-md-3">
@@ -179,17 +178,17 @@ try {
                     </tr>
                     <?php else: ?>
                     <?php foreach ($products as $product): ?>
-                    <tr data-product-name="<?php echo strtolower(htmlspecialchars($product['name'])); ?>" 
+                    <tr data-product-name="<?php echo strtolower(htmlspecialchars($product['name'])); ?>"
                         data-category="<?php echo strtolower(htmlspecialchars($product['category'])); ?>"
                         data-stock="<?php echo $product['stock']; ?>">
                         <td>
                             <?php if ($product['image'] && file_exists('../../uploads/' . $product['image'])): ?>
-                                <img src="../../uploads/<?php echo htmlspecialchars($product['image']); ?>" 
-                                     alt="Product Image" class="product-image">
+                            <img src="../../uploads/<?php echo htmlspecialchars($product['image']); ?>"
+                                alt="Product Image" class="product-image">
                             <?php else: ?>
-                                <div class="no-image">
-                                    <i class="fas fa-image"></i>
-                                </div>
+                            <div class="no-image">
+                                <i class="fas fa-image"></i>
+                            </div>
                             <?php endif; ?>
                         </td>
                         <td>
@@ -198,11 +197,11 @@ try {
                         </td>
                         <td>
                             <?php if ($product['category']): ?>
-                                <span class="badge bg-light text-dark">
-                                    <?php echo htmlspecialchars($product['category']); ?>
-                                </span>
+                            <span class="badge bg-light text-dark">
+                                <?php echo htmlspecialchars($product['category']); ?>
+                            </span>
                             <?php else: ?>
-                                <span class="text-muted">-</span>
+                            <span class="text-muted">-</span>
                             <?php endif; ?>
                         </td>
                         <td>
@@ -220,11 +219,12 @@ try {
                         </td>
                         <td>
                             <?php if ($product['description']): ?>
-                                <div class="description-text" title="<?php echo htmlspecialchars($product['description']); ?>">
-                                    <?php echo htmlspecialchars($product['description']); ?>
-                                </div>
+                            <div class="description-text"
+                                title="<?php echo htmlspecialchars($product['description']); ?>">
+                                <?php echo htmlspecialchars($product['description']); ?>
+                            </div>
                             <?php else: ?>
-                                <span class="text-muted">-</span>
+                            <span class="text-muted">-</span>
                             <?php endif; ?>
                         </td>
                         <td>
@@ -234,13 +234,13 @@ try {
                         </td>
                         <td>
                             <div class="action-buttons">
-                                <a href="product-edit.php?id=<?php echo $product['id']; ?>" 
-                                   class="btn btn-outline-primary" title="Edit">
+                                <a href="product-edit.php?id=<?php echo $product['id']; ?>"
+                                    class="btn btn-outline-primary" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                <button type="button" class="btn btn-outline-danger" 
-                                        onclick="confirmDelete(<?php echo $product['id']; ?>, '<?php echo addslashes($product['name']); ?>')" 
-                                        title="Delete">
+                                <button type="button" class="btn btn-outline-danger"
+                                    onclick="confirmDelete(<?php echo $product['id']; ?>, '<?php echo addslashes($product['name']); ?>')"
+                                    title="Delete">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -287,28 +287,28 @@ function filterProducts() {
     const categoryFilter = document.getElementById('categoryFilter').value.toLowerCase();
     const stockFilter = document.getElementById('stockFilter').value;
     const rows = document.querySelectorAll('#productsTableBody tr[data-product-name]');
-    
+
     rows.forEach(row => {
         const productName = row.getAttribute('data-product-name');
         const category = row.getAttribute('data-category');
         const stock = parseInt(row.getAttribute('data-stock'));
-        
+
         let showRow = true;
-        
+
         if (searchTerm && !productName.includes(searchTerm)) {
             showRow = false;
         }
-        
+
         if (categoryFilter && category !== categoryFilter) {
             showRow = false;
         }
-        
+
         if (stockFilter) {
             if (stockFilter === 'low' && stock >= 10) showRow = false;
             else if (stockFilter === 'medium' && (stock < 10 || stock > 50)) showRow = false;
             else if (stockFilter === 'high' && stock <= 50) showRow = false;
         }
-        
+
         row.style.display = showRow ? '' : 'none';
     });
 }
