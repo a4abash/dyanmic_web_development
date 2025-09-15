@@ -64,29 +64,45 @@ $conn->close();
 </head>
 
 <body>
+    <style>
+        .login-form h2{
+  text-align: center;
+}
+
+
+        </style>
     <div class="login-container">
         <div class="login-form">
-            <h2>Register</h2>
+            <h2>Sign Up </h2>
             <?php if (!empty($error)) echo "<p style='color:red;'>$error</p>"; ?>
-            <form method="POST" action="">
-                <!-- <label>Username:</label>
-                <input type="text" placeholder="admin" name="username" required value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>"> -->
-                <label>Name:</label>
-                <input type="text" placeholder="Admin Lal" name="name" required value="<?php echo isset($_POST['name']) ? htmlspecialchars($_POST['name']) : ''; ?>">
-                <label>Email:</label>
-                <input type="email" placeholder="admin@gmail.com" name="email" required value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
-                <label for="role">Role</label>
-                <select name="role_id" id="role" required>
+            
+            <form method="POST" action="" novalidate>
+
+                <label for="reg_name">Name</label>
+                <input id="reg_name" name="name" type="text" required autocomplete="name"
+                        value="<?= isset($_POST['name']) ? htmlspecialchars($_POST['name']) : '' ?>">
+
+                <label for="reg_email">Email</label>
+                <input id="reg_email" name="email" type="email" required autocomplete="email"
+                        value="<?= isset($_POST['email']) ? htmlspecialchars($_POST['email']) : '' ?>">
+
+                <label for="reg_role">Role</label>
+                <select id="reg_role" name="role_id" required>
                     <option value="" disabled selected>Select Role</option>
                     <?php foreach ($roles as $role): ?>
-                        <option value="<?= $role['id']; ?>"><?= ucfirst($role['role']); ?></option>
+                    <option value="<?= $role['id'] ?>"><?= ucfirst($role['role']) ?></option>
                     <?php endforeach; ?>
                 </select>
-                <label>Password:</label>
-                <input type="password" placeholder="12345" name="password" required>
+
+                <label for="reg_password">Password</label>
+                <input id="reg_password" name="password" type="password" minlength="6" required autocomplete="new-password">
+
                 <button type="submit">Register</button>
+                <p id="formMessage" class="form-message" role="alert" aria-live="polite"></p>
+
             </form>
-            <span>Goto </span><a style="text-decoration:none" class="goto-login" href="login.php">Login</a>
+
+            <span id=test>click<a style="text-decoration:none" class="goto-login" href="login.php" >Login</a></span>
         </div>
     </div>
 </body>

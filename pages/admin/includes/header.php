@@ -33,17 +33,17 @@ if (isset($_GET['debug'])) {
     .admin-header {
         padding: fixed;
         padding: 60px;
-    }
-    
+    }    
     </style>
 
 <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
     <div class="admin-container">
         <!-- Header -->
         <header class="admin-header">
             <div class="logo">
                 <a href="dashboard.php">
-                    <img src="../../assets/images/logo-2.png" alt="Company Logo">
+                    <img src="../../assets/images/logo-2.png" alt="Logo for Ripper Tech & Solutions" class="thumbnail">
                 </a>
             </div>
             <div class="profile-dropdown">

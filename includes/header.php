@@ -18,6 +18,7 @@
 </head>
 
 <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
     <header>
         <nav class="navbar" role="navigation" aria-label="Main Navigation Bar">
             <div class="logo"><a href="index.php"><img src="assets/images/logo-2.png" alt="Logo for Ripper Tech & Solutions" class="thumbnail"></a>
