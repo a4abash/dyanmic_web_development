@@ -1,5 +1,8 @@
 <?php
+require 'config/auth.php';
 include 'includes/header.php';
+
+require_once 'config/db.php';
 
 try {
     $stmt = $conn->prepare("

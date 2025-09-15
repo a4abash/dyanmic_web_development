@@ -4,7 +4,6 @@ define('ABSPATH', __DIR__);
 require_once 'config/toastr.php';
 require_once 'config/db.php';
 
-
 if (!isset($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }

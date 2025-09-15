@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>/index.php</loc></url>
+  <url><loc>/about.php</loc></url>
+  <url><loc>/services.php</loc></url>
+  <url><loc>/products.php</loc></url>
+  <url><loc>/contact.php</loc></url>
+  <url><loc>/media.php</loc></url>
+  <url><loc>/login.php</loc></url>
+  <url><loc>/register.php</loc></url>
+  <url><loc>/privacy.php</loc></url>
+</urlset>

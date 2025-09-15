@@ -1,3 +1,4 @@
+<?php require_once '../../config/auth.php'; if(($_SESSION['role_name'] ?? '')!=='admin'){ http_response_code(403); die('Forbidden'); } ?>
 <?php
 include 'includes/header.php';
 include 'includes/sidebar.php';
