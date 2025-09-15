@@ -234,10 +234,6 @@ try {
                         </td>
                         <td>
                             <div class="action-buttons">
-                                <a href="product-view.php?id=<?php echo $product['id']; ?>" 
-                                   class="btn btn-outline-info" title="View">
-                                    <i class="fas fa-eye"></i>
-                                </a>
                                 <a href="product-edit.php?id=<?php echo $product['id']; ?>" 
                                    class="btn btn-outline-primary" title="Edit">
                                     <i class="fas fa-edit"></i>

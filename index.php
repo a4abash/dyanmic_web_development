@@ -1,5 +1,4 @@
 <?php
-session_start();
 require 'config/auth.php';
 include 'includes/header.php'; 
 

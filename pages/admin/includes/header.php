@@ -24,6 +24,17 @@ if (isset($_GET['debug'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
 
 </head>
+<style>
+    .admin-header .logo img {
+            height: 95px; /* bigger logo */
+            width: 130px;
+        }
+
+    .admin-header {
+        padding: 60px;
+    }
+    
+    </style>
 
 <body>
     <div class="admin-container">
@@ -32,7 +43,6 @@ if (isset($_GET['debug'])) {
             <div class="logo">
                 <a href="dashboard.php">
                     <img src="../../assets/images/logo-2.png" alt="Company Logo">
-                    <span class="title">Web Development</span>
                 </a>
             </div>
             <div class="profile-dropdown">
@@ -41,7 +51,6 @@ if (isset($_GET['debug'])) {
                     <span><?php echo htmlspecialchars($_SESSION['username']); ?></span>
                 </button>
                 <div class="dropdown-content" id="profileDropdown">
-                    <button onclick="location.href='#'">Settings</button>
                     <button onclick="logout()">Logout</button>
                 </div>
             </div>

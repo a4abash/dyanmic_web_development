@@ -6,7 +6,7 @@ include 'includes/header.php'; ?>
         <h1>About Us</h1>
         <div class="about-container">
             <div class="about-image">
-                <img src="images/cover-1.jpg" alt="Ripper Tech & Services Office image">
+                <img src="assets/images/cover-1.jpg" alt="Ripper Tech & Services Office image">
             </div>
             <div class="about-text">
                 <p>Ripper Tech & Solutions was founded in 2023 by a group of Young Entrepreneurs from Nepal, aiming to serve clients in Australia. We are mainly focused in Web development,

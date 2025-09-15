@@ -8,8 +8,8 @@
     <meta name="keywords" content="Ripper Tech & Solutions, Web Development, App Development, Cloud Solutions, Security Services">
     <title>Ripper Tech & Solutions - Home</title>
     <link rel="icon" type="image/png" href="assets/images/logo-2.png">
-    <link rel="stylesheet" href="assets/css/style.css" />
-    <link href="assets/css/css2.css" rel="stylesheet" />
+    <link rel="stylesheet" href="../assets/css/style.css" />
+    <link href="../assets/css/css2.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
